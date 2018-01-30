@@ -5,7 +5,7 @@ import { decrementAmount, incrementAmount } from './module';
 import { ReduxAction, ReduxState } from '../store';
 
 export class ActionDispatcher {
-  constructor(private dispatch: (action: ReduxAction) => void) { }
+  constructor(private dispatch: (action: ReduxAction) => void, rootState: ReduxState) { }
 
   public increment(amount: number) {
     this.dispatch(incrementAmount(amount));
@@ -17,6 +17,10 @@ export class ActionDispatcher {
 }
 
 export default connect(
-  (state: ReduxState) => ({ value: state.counter }),
-  (dispatch: Dispatch<ReduxAction>) => ({ actions: new ActionDispatcher(dispatch) })
+  (state: ReduxState) => ({ state }),
+  (dispatch: Dispatch<ReduxAction>) => ({ dispatch }),
+  ({state}, {dispatch}, onwProps) => ({
+    actions: new ActionDispatcher(dispatch, state),
+    value: state.counter,
+  })
 )(Counter);
