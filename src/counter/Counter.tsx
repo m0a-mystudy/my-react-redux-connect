@@ -2,7 +2,7 @@ import * as React from 'react';
 import { CounterState } from './module';
 import { ActionDispatcher } from './Container';
 
-interface Props {
+export interface Props {
   value: CounterState;
   actions: ActionDispatcher;
 }

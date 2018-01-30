@@ -1,4 +1,4 @@
-import { Counter } from './Counter';
+import { Counter, Props } from './Counter';
 import * as ReactRedux from 'react-redux';
 import { Dispatch } from 'redux';
 import { decrementAmount, incrementAmount } from './module';
@@ -19,34 +19,25 @@ export class ActionDispatcher extends ActionDispatcherBase {
   }
 }
 
-interface MyMergeProps<T> {
-  (state: ReduxState, dispatch: Dispatch<ReduxAction>, onwProps: T): T;
+interface MyMergeProps<T extends {actions: ActionDispatcherBase}> {
+  (state: ReduxState, dispatch: Dispatch<ReduxAction>, ownProps: T): T;
 }
-
-function Myconnect<T>(actionDispatcher: typeof ActionDispatcherBase, mergeProps: MyMergeProps<T>) {
+function Myconnect<T extends {actions: ActionDispatcherBase}>(
+    actionDispatcher: typeof ActionDispatcherBase, 
+    mergeProps: MyMergeProps<T>): ReactRedux.InferableComponentEnhancer<T>  {
   return ReactRedux.connect(
     (state: ReduxState) => ({ state }),
     (dispatch: Dispatch<ReduxAction>) => ({ dispatch }),
-    ({ state }, { dispatch }, onwProps: T) => {
-      const pp = mergeProps(state, dispatch, onwProps);
+    ({ state }, { dispatch }, ownProps: T) => {
+      const pp = mergeProps(state, dispatch, ownProps);
       return (
-        Object.assign({}, {
-          actions: new actionDispatcher(dispatch, state)
-        }, pp)
+        Object.assign({}, pp, { actions: new actionDispatcher(dispatch, state)})
       );
     });
 }
 
-// export default ReactRedux.connect(
-//   (state: ReduxState) => ({ state }),
-//   (dispatch: Dispatch<ReduxAction>) => ({ dispatch }),
-//   ({ state }, { dispatch }, onwProps) => ({
-//     actions: new ActionDispatcher(dispatch, state),
-//     value: state.counter,
-//   })
-// )(Counter);
-
-export default Myconnect(
-  ActionDispatcher, (state, dispatch, ownprops) => ({
+export default Myconnect<Props>(
+  ActionDispatcher, (state, dispatch, ownProps) => ({
+  ...ownProps,
   value: state.counter,
 }))(Counter);
